@@ -1,0 +1,33 @@
+{
+  "name": "eloquentrealtormlm",
+  "version": "1.0.0",
+  "description": "This is a multi-level-marketing app server for eloquent realtors",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "multi",
+    "level",
+    "marketing",
+    "realtors",
+    "refferals",
+    "upline",
+    "downline"
+  ],
+  "author": "oyewunmi Gbenga Kelvin for Eloquent Realtors",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.4",
+    "nodemon": "^3.1.0"
+  }
+}
