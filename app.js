@@ -12,6 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 3100;
 // Middlewares
 app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:3100"],
+    credentials: true,
+  })
+);
 
 app.use("/marketers", marketerRoutes);
 
@@ -28,7 +34,7 @@ const start = async () => {
       console.log(`Server is running on port ${PORT}`);
     });
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 };
 start();
