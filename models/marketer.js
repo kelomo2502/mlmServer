@@ -39,17 +39,6 @@ const marketerSchema = new mongoose.Schema({
     required: [true, "Please enter your password"],
     minLength: [6, "Password must be minimum of 6 characters"],
   },
-  confirmPassword: {
-    type: String,
-    required: [true, "Please confirm your password"],
-    validate: {
-      validator: function (value) {
-        return this.password === value;
-      },
-      message: "Passwords do not match",
-    },
-  },
-
   referralLink: {
     type: String,
   },
