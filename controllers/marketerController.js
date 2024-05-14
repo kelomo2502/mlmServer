@@ -10,35 +10,48 @@ const generateToken = (id) => {
   });
 };
 
+const checkPassword = (password, confirmPassword) => {
+  if (password !== confirmPassword) {
+    throw new Error("Password does not match");
+  }
+};
+
 const registerMarketer = asyncHandler(async (req, res) => {
-  const { name, phone, email, password } = req.body;
-  if (!name || !phone || !email || !password) {
+  const { name, phone, email, password, confirmPassword } = req.body;
+  if (!name || !phone || !email || !password || !confirmPassword) {
     res.status(400);
     throw new Error("Fill all required fields");
   }
+
   if (password.length < 6) {
     res.status(400);
     throw new Error("Password cannot be less than 6 characters");
   }
+
   const emailExists = await Marketer.findOne({ email });
   if (emailExists) {
     res.status(400);
     throw new Error("Email already exists");
   }
+
   const phoneExists = await Marketer.findOne({ phone });
   if (phoneExists) {
     res.status(400);
     throw new Error("The phone number already exists");
   }
+
   const referralLink = generateReferralLink();
-  const newMarketer = await Marketer.create({
+  const newMarketer = new Marketer({
     name,
     phone,
     email,
     password,
-    confirmPassword: password,
+    confirmPassword,
     referralLink,
   });
+  checkPassword(password, confirmPassword);
+  await newMarketer.save();
+
   const token = generateToken(newMarketer._id);
   if (newMarketer) {
     const { _id, name, email, phone } = newMarketer;
@@ -49,7 +62,6 @@ const registerMarketer = asyncHandler(async (req, res) => {
       secure: process.env.NODE_ENV === "development" ? false : true,
       sameSite: "none",
     });
-    await newMarketer.save();
     res.status(201).json({ _id, name, email, phone, token });
   } else {
     res.status(400);
@@ -59,22 +71,38 @@ const registerMarketer = asyncHandler(async (req, res) => {
 
 const registerUnderReferral = asyncHandler(async (req, res) => {
   const { referralId } = req.params;
-  const { name, phone, email, password } = req.body;
+  const { name, phone, email, password, confirmPassword } = req.body;
   const referredBy = await Marketer.findById(referralId);
   if (!referredBy) {
     res.status(404);
     throw new Error("Referral not found");
   }
   const referralLink = generateReferralLink(referralId);
-  const newMarketer = await Marketer.create({
+  const newMarketer = new Marketer({
     name,
     phone,
     email,
     password,
-    confirmPassword: password,
+    confirmPassword,
     referralLink,
     referredBy,
   });
+  checkPassword(password, confirmPassword);
+  await newMarketer.save();
+
+  // Add the new marketer as a direct downline
+  referredBy.downlines.push(newMarketer._id);
+  await referredBy.save();
+  // If the referrer has its own referrer, recursively add downlines
+    if (referredBy.referredBy) {
+      const parentReferrer = await Marketer.findById(referredBy.referredBy);
+      if (parentReferrer) {
+        // Add the new marketer as a downline for the parent referrer
+        parentReferrer.downlines.push(newMarketer._id);
+        await parentReferrer.save();
+      }
+    }
+
   const token = generateToken(newMarketer._id);
   if (newMarketer) {
     const { name, phone, email, referralLink, referredBy } = newMarketer;
@@ -85,9 +113,6 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
       secure: process.env.NODE_ENV === "development" ? false : true,
       sameSite: "none",
     });
-    const allDownlines = [...referredBy.downlines, newMarketer._id];
-    referredBy.downlines = allDownlines;
-    await referredBy.save();
     res
       .status(201)
       .json({ name, phone, email, referralLink, referredBy, token });
@@ -98,3 +123,5 @@ module.exports = {
   registerMarketer,
   registerUnderReferral,
 };
+
+
