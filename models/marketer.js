@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs")
 
 const marketerSchema = new mongoose.Schema({
   name: {
@@ -68,6 +69,17 @@ const marketerSchema = new mongoose.Schema({
       },
     },
   ],
+});
+// Encrypt password before saving it to DB
+marketerSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  }
+  // Hash password
+  const salt = await bcrypt.genSalt(12);
+  const hashedPassword = await bcrypt.hash(this.password, salt);
+  this.password = hashedPassword;
+  next();
 });
 
 const Marketer = mongoose.model("Marketer", marketerSchema);

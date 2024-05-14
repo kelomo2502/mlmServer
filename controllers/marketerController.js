@@ -91,9 +91,6 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
   await newMarketer.save();
 
   // Add the new marketer as a direct downline
-  // referredBy.downlines.push(newMarketer._id);
-  // await referredBy.save();
-  // Add the new marketer as a direct downline
   referredBy.downlines.push(newMarketer._id);
   await referredBy.save();
   // If the referrer has its own referrer, recursively add downlines
@@ -127,66 +124,4 @@ module.exports = {
   registerUnderReferral,
 };
 
-
-
-// NEW LOGIC
-// const registerUnderReferral = asyncHandler(async (req, res) => {
-//   const { referralId } = req.params;
-//   const { name, phone, email, password, confirmPassword } = req.body;
-
-//   // Find the referrer (the one who referred the current marketer)
-//   const referredBy = await Marketer.findById(referralId);
-//   if (!referredBy) {
-//     res.status(404);
-//     throw new Error("Referral not found");
-//   }
-
-//   // Create the new marketer with referral information
-//   const newMarketer = new Marketer({
-//     name,
-//     phone,
-//     email,
-//     password,
-//     confirmPassword,
-//     referralLink: generateReferralLink(referralId),
-//     referredBy,
-//   });
-
-//   checkPassword(password, confirmPassword);
-//   await newMarketer.save();
-
-//   // Add the new marketer as a direct downline
-//   referredBy.downlines.push(newMarketer._id);
-//   await referredBy.save();
-
-//   // If the referrer has its own referrer, recursively add downlines
-//   if (referredBy.referredBy) {
-//     const parentReferrer = await Marketer.findById(referredBy.referredBy);
-//     if (parentReferrer) {
-//       // Add the new marketer as a downline for the parent referrer
-//       parentReferrer.downlines.push(newMarketer._id);
-//       await parentReferrer.save();
-//     }
-//   }
-
-//   const token = generateToken(newMarketer._id);
-//   if (newMarketer) {
-//     const { name, phone, email, referralLink, referredBy } = newMarketer;
-//     res.cookie("token", token, {
-//       path: "/",
-//       httpOnly: true,
-//       expires: new Date(Date.now() + 1000 * 86400),
-//       secure: process.env.NODE_ENV === "development" ? false : true,
-//       sameSite: "none",
-//     });
-//     res
-//       .status(201)
-//       .json({ name, phone, email, referralLink, referredBy, token });
-//   }
-// });
-
-// module.exports = {
-//   registerMarketer,
-//   registerUnderReferral,
-// };
 
