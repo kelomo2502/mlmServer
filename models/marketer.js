@@ -10,6 +10,20 @@ const marketerSchema = new mongoose.Schema({
     required: [true, "Please enter your phone number"],
     unique: [true, "Phone number already exists"],
   },
+  role: {
+    type: String,
+    required: [true],
+    default: "marketer",
+    enum: ["marketer", "admin"],
+  },
+  balance: {
+    type: Number,
+    default: 0,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   email: {
     type: String,
     required: [true, "Please enter your email"],
@@ -47,6 +61,22 @@ const marketerSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Marketer",
+    },
+  ],
+  commissions: [
+    {
+      amount: {
+        type: Number,
+        required: true,
+      },
+      product: {
+        type: String,
+        required: true,
+      },
+      paid: {
+        type: Boolean,
+        default: false,
+      },
     },
   ],
 });

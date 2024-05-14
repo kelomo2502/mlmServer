@@ -39,7 +39,22 @@ const registerMarketer = asyncHandler(async (req, res) => {
     confirmPassword: password,
     referralLink,
   });
-  res.status(201).json(newMarketer);
+  const token = generateToken(newMarketer._id);
+  if (newMarketer) {
+    const { _id, name, email, phone } = newMarketer;
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400),
+      secure: process.env.NODE_ENV === "development" ? false : true,
+      sameSite: "none",
+    });
+    await newMarketer.save();
+    res.status(201).json({ _id, name, email, phone, token });
+  } else {
+    res.status(400);
+    throw new Error("Invalid user data");
+  }
 });
 
 const registerUnderReferral = asyncHandler(async (req, res) => {
@@ -60,10 +75,23 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
     referralLink,
     referredBy,
   });
-  const allDownlines = [...referredBy.downlines, newMarketer._id];
-  referredBy.downlines = allDownlines;
-  await referredBy.save();
-  res.status(201).json(newMarketer);
+  const token = generateToken(newMarketer._id);
+  if (newMarketer) {
+    const { name, phone, email, referralLink, referredBy } = newMarketer;
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400),
+      secure: process.env.NODE_ENV === "development" ? false : true,
+      sameSite: "none",
+    });
+    const allDownlines = [...referredBy.downlines, newMarketer._id];
+    referredBy.downlines = allDownlines;
+    await referredBy.save();
+    res
+      .status(201)
+      .json({ name, phone, email, referralLink, referredBy, token });
+  }
 });
 
 module.exports = {
