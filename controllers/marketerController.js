@@ -94,14 +94,14 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
   referredBy.downlines.push(newMarketer._id);
   await referredBy.save();
   // If the referrer has its own referrer, recursively add downlines
-    if (referredBy.referredBy) {
-      const parentReferrer = await Marketer.findById(referredBy.referredBy);
-      if (parentReferrer) {
-        // Add the new marketer as a downline for the parent referrer
-        parentReferrer.downlines.push(newMarketer._id);
-        await parentReferrer.save();
-      }
+  if (referredBy.referredBy) {
+    const parentReferrer = await Marketer.findById(referredBy.referredBy);
+    if (parentReferrer) {
+      // Add the new marketer as a downline for the parent referrer
+      parentReferrer.downlines.push(newMarketer._id);
+      await parentReferrer.save();
     }
+  }
 
   const token = generateToken(newMarketer._id);
   if (newMarketer) {
@@ -119,9 +119,37 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
   }
 });
 
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  if ((!email, !password)) {
+    res.status(400);
+    throw new Error("Enter email and password");
+  }
+  const marketer = await Marketer.findOne({ email });
+  if (!marketer) {
+    res.status(400);
+    throw new Error("Marketer does not exist");
+  }
+  const passwordIsCorrect = await bcrypt.compare(password, marketer.password);
+
+  const token = generateToken(marketer._id);
+  if (marketer && passwordIsCorrect) {
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400),
+      secure: process.env.NODE_ENV === "development" ? false : true,
+      sameSite: "none",
+    });
+    const newMarketer = await Marketer.findOne({ email }).select("-password");
+    res.status(200).json({ newMarketer, token });
+  } else {
+    throw new Error("Invalid Email or Password");
+  }
+});
+
 module.exports = {
   registerMarketer,
   registerUnderReferral,
+  login,
 };
-
-
