@@ -1,9 +1,10 @@
 // routes/marketerRoutes.js
 const express = require("express");
 const router = express.Router();
-const marketerController = require("../controllers/marketerController");
+const {registerMarketer,registerUnderReferral,login} = require("../controllers/marketerController");
 
-router.post("/register", marketerController.registerMarketer);
-router.post("/register/:referralId", marketerController.registerUnderReferral);
+router.post("/register", registerMarketer);
+router.post("/register/:referralId", registerUnderReferral);
+router.post("/login",login)
 
 module.exports = router;
