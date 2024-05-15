@@ -41,6 +41,20 @@ const marketerSchema = new mongoose.Schema(
       required: [true, "Please enter your password"],
       minLength: [6, "Password must be minimum of 6 characters"],
     },
+    bankDetail: {
+      bankName: {
+        type: String,
+        default: "Bank Name",
+      },
+      accountNumber: {
+        type: Number,
+        default: 123456789,
+      },
+      accountName: {
+        type: String,
+        default: "My bank",
+      },
+    },
     photo: {
       type: String,
       required: [true, "Please add a photo"],
@@ -63,12 +77,13 @@ const marketerSchema = new mongoose.Schema(
       {
         amount: {
           type: Number,
-          required: true,
+          default: 0,
         },
         product: {
           type: String,
-          required: true,
+          default: "Describe pproduct sold",
         },
+
         paid: {
           type: Boolean,
           default: false,

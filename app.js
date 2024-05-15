@@ -1,25 +1,26 @@
 // app.js
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser")
 const dotenv = require("dotenv");
 const cors = require("cors");
-const cookieParser = require("cookie-parser");
 dotenv.config();
 const marketerRoutes = require("./routes/marketerRoutes");
 const errorHandler = require("./middlewares/errorhandler");
+
 
 const app = express();
 const PORT = process.env.PORT || 3100;
 // Middlewares
 app.use(express.json());
+app.use(cookieParser())
 app.use(
   cors({
     origin: ["http://localhost:3100"],
     credentials: true,
   })
 );
-
-app.use("/marketers", marketerRoutes);
+app.use("/api/v1", marketerRoutes);
 
 app.use(errorHandler);
 const start = async () => {

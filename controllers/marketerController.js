@@ -17,7 +17,8 @@ const checkPassword = (password, confirmPassword) => {
 };
 
 const registerMarketer = asyncHandler(async (req, res) => {
-  const { name, phone, email, password, confirmPassword } = req.body;
+  const { name, phone, email, password, confirmPassword, commissions } =
+    req.body;
   if (!name || !phone || !email || !password || !confirmPassword) {
     res.status(400);
     throw new Error("Fill all required fields");
@@ -47,6 +48,14 @@ const registerMarketer = asyncHandler(async (req, res) => {
     email,
     password,
     confirmPassword,
+    commissions,
+    commissions: [
+      {
+        amount: 0,
+        product: "Describe product sold",
+        paid: false,
+      },
+    ],
     referralLink,
   });
   checkPassword(password, confirmPassword);
@@ -84,6 +93,13 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
     email,
     password,
     confirmPassword,
+    commissions: [
+      {
+        amount: 0,
+        product: "Describe product sold",
+        paid: false,
+      },
+    ],
     referralLink,
     referredBy,
   });
@@ -141,21 +157,100 @@ const login = asyncHandler(async (req, res) => {
       secure: process.env.NODE_ENV === "development" ? false : true,
       sameSite: "none",
     });
-    const newMarketer = await Marketer.findOne({ email }).select("-password");
-    res.status(200).json({ newMarketer, token });
+    const loggedInMarketer = await Marketer.findOne({ email }).select(
+      "-password"
+    );
+    res.status(200).json({ loggedInMarketer, token });
   } else {
     throw new Error("Invalid Email or Password");
   }
 });
 
-const logout = asyncHandler(async (req,res)=>{
-  res.clearCookie("token")
-  res.status(200).json({message:"You have logged out successfully"})
-})
+const logout = asyncHandler(async (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "You have logged out successfully" });
+});
+
+const getMarketer = asyncHandler(async (req, res) => {
+  const marketer = await Marketer.findById(req.marketer._id).select(
+    "-password"
+  );
+  if (marketer) {
+    res.status(200).json(marketer);
+  } else {
+    throw new Error("Marketer not found");
+  }
+});
+//   const token = req.cookies.token;
+//   if (!token) {
+//     res.json(false)
+//     return;
+//   }
+//   try {
+//     // Verify token
+//     const verified = jwt.verify(token, process.env.JWT_SECRET);
+//     if(verified){
+//       res.json(true)
+//     }else{
+//       res.json(true);
+//     }
+
+//     // Get marketer_id from token
+//     const marketer = await Marketer.findById(verified.id).select("-password");
+//     if (!marketer) {
+//       res.status(401).json({ message: "Marketer not found" });
+//       return;
+//     }
+
+//     req.marketer = marketer;
+//     next();
+//   } catch (error) {
+//     res.status(401).json({ message: "Not authorized, please login!" });
+//   }
+// });
+
+const getLoginStatus = asyncHandler(async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.json(false);
+  }
+
+  try {
+    // Verify token
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    if (verified) {
+      res.json(true);
+    } else {
+      res.json(false);
+    }
+
+    // Get marketer_id from token
+    const marketer = await Marketer.findById(verified._id).select("-password");
+    if (!marketer) {
+      return res.json(false);
+    }
+
+    // If the token is valid and marketer exists
+    res.json(true);
+  } catch (error) {
+    res.json(false); // Token verification failed or some other error occurred
+  }
+});
+
+const updateMarketer = asyncHandler(async (req, res) => {
+  const marketer = await Marketer.findById(req.marketer._id);
+  if (marketer) {
+    const { phone, bankDetails } = marketer;
+  }
+});
 
 module.exports = {
   registerMarketer,
   registerUnderReferral,
   login,
-  logout
+  logout,
+  getMarketer,
+  getLoginStatus,
+  updateMarketer,
 };
