@@ -25,7 +25,7 @@ app.use(errorHandler);
 const start = async () => {
   try {
     mongoose.connect("mongodb://127.0.0.1:27017", {
-      dbName: "eloquent_realtorsDB",
+      dbName: "mlmDB",
       // useNewUrlParser: true,
       // useUnifiedTopology: true,
       // useCreateIndex: true,

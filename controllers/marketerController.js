@@ -148,8 +148,14 @@ const login = asyncHandler(async (req, res) => {
   }
 });
 
+const logout = asyncHandler(async (req,res)=>{
+  res.clearCookie("token")
+  res.status(200).json({message:"You have logged out successfully"})
+})
+
 module.exports = {
   registerMarketer,
   registerUnderReferral,
   login,
+  logout
 };
