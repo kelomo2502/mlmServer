@@ -48,14 +48,6 @@ const registerMarketer = asyncHandler(async (req, res) => {
     email,
     password,
     confirmPassword,
-    commissions,
-    commissions: [
-      {
-        amount: 0,
-        product: "Describe product sold",
-        paid: false,
-      },
-    ],
     referralLink,
   });
   checkPassword(password, confirmPassword);
@@ -63,7 +55,20 @@ const registerMarketer = asyncHandler(async (req, res) => {
 
   const token = generateToken(newMarketer._id);
   if (newMarketer) {
-    const { _id, name, email, phone } = newMarketer;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      role,
+      balance,
+      isVerified,
+      bankDetail,
+      photo,
+      referralLink,
+      downlines,
+      commission,
+    } = newMarketer;
     res.cookie("token", token, {
       path: "/",
       httpOnly: true,
@@ -71,7 +76,21 @@ const registerMarketer = asyncHandler(async (req, res) => {
       secure: process.env.NODE_ENV === "development" ? false : true,
       sameSite: "none",
     });
-    res.status(201).json({ _id, name, email, phone, token });
+    res.status(201).json({
+      _id,
+      name,
+      email,
+      phone,
+      role,
+      balance,
+      isVerified,
+      bankDetail,
+      photo,
+      referralLink,
+      downlines,
+      commission,
+      token,
+    });
   } else {
     res.status(400);
     throw new Error("Invalid user data");
@@ -93,13 +112,6 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
     email,
     password,
     confirmPassword,
-    commissions: [
-      {
-        amount: 0,
-        product: "Describe product sold",
-        paid: false,
-      },
-    ],
     referralLink,
     referredBy,
   });
@@ -121,7 +133,21 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
 
   const token = generateToken(newMarketer._id);
   if (newMarketer) {
-    const { name, phone, email, referralLink, referredBy } = newMarketer;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      role,
+      balance,
+      isVerified,
+      bankDetail,
+      photo,
+      referralLink,
+      referredBy,
+      downlines,
+      commission,
+    } = newMarketer;
     res.cookie("token", token, {
       path: "/",
       httpOnly: true,
@@ -129,9 +155,22 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
       secure: process.env.NODE_ENV === "development" ? false : true,
       sameSite: "none",
     });
-    res
-      .status(201)
-      .json({ name, phone, email, referralLink, referredBy, token });
+    res.status(201).json({
+      _id,
+      name,
+      email,
+      phone,
+      role,
+      balance,
+      isVerified,
+      bankDetail,
+      photo,
+      referralLink,
+      referredBy,
+      downlines,
+      commission,
+      token,
+    });
   }
 });
 
@@ -241,7 +280,13 @@ const getLoginStatus = asyncHandler(async (req, res) => {
 const updateMarketer = asyncHandler(async (req, res) => {
   const marketer = await Marketer.findById(req.marketer._id);
   if (marketer) {
-    const { phone, bankDetails } = marketer;
+    const { phone, bankDetail } = marketer;
+    marketer.phone = req.body.phone || phone;
+    marketer.bankDetail = req.body.bankDetail || bankDetail;
+    const updatedMarketer = await marketer.save();
+    res.status(200).json(updatedMarketer);
+  } else {
+    res.status(400).json("Marketer details not found");
   }
 });
 

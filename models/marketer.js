@@ -45,14 +45,17 @@ const marketerSchema = new mongoose.Schema(
       bankName: {
         type: String,
         default: "Bank Name",
+        required: true,
       },
       accountNumber: {
-        type: Number,
+        type: String,
         default: 123456789,
+        required: true,
       },
       accountName: {
         type: String,
         default: "My bank",
+        required: true,
       },
     },
     photo: {
@@ -73,23 +76,24 @@ const marketerSchema = new mongoose.Schema(
         ref: "Marketer",
       },
     ],
-    commissions: [
-      {
-        amount: {
-          type: Number,
-          default: 0,
-        },
-        product: {
-          type: String,
-          default: "Describe pproduct sold",
-        },
-
-        paid: {
-          type: Boolean,
-          default: false,
-        },
+    commission : {
+      productName:{
+        type:String,
+        default:"Enter product sold"
       },
-    ],
+      AmountPaid:{
+        type:Number,
+        default:0
+      },
+      percentage:{
+        type:Number,
+        default:0
+      },
+      actualCommission:{
+        type:Number,
+        default:0
+      }
+    }
   },
   {
     timestamps: true,
