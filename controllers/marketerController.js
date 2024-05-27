@@ -16,9 +16,24 @@ const checkPassword = (password, confirmPassword) => {
   }
 };
 
+// Recursive function to update downlines
+const updateDownlines = async (referrerId, newDownlineId) => {
+  if (!referrerId) return;
+
+  const referrer = await Marketer.findById(referrerId);
+  if (referrer) {
+    referrer.downlines.push(newDownlineId);
+    await referrer.save();
+
+    // Recursively update the downlines of the next referrer in the chain
+    if (referrer.referredBy) {
+      await updateDownlines(referrer.referredBy, newDownlineId);
+    }
+  }
+};
+
 const registerMarketer = asyncHandler(async (req, res) => {
-  const { name, phone, email, password, confirmPassword, commissions } =
-    req.body;
+  const { name, phone, email, password, confirmPassword } = req.body;
   if (!name || !phone || !email || !password || !confirmPassword) {
     res.status(400);
     throw new Error("Fill all required fields");
@@ -41,16 +56,20 @@ const registerMarketer = asyncHandler(async (req, res) => {
     throw new Error("The phone number already exists");
   }
 
-  const referralLink = generateReferralLink();
+  checkPassword(password, confirmPassword);
+
   const newMarketer = new Marketer({
     name,
     phone,
     email,
     password,
-    confirmPassword,
-    referralLink,
   });
-  checkPassword(password, confirmPassword);
+
+  await newMarketer.save();
+
+  // Generate and assign the referral link
+  const referralLink = generateReferralLink(newMarketer._id);
+  newMarketer.referralLink = referralLink;
   await newMarketer.save();
 
   const token = generateToken(newMarketer._id);
@@ -105,31 +124,26 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Referral not found");
   }
-  const referralLink = generateReferralLink(referralId);
+
+  checkPassword(password, confirmPassword);
+
   const newMarketer = new Marketer({
     name,
     phone,
     email,
     password,
-    confirmPassword,
-    referralLink,
-    referredBy,
+    referredBy: referralId, // Make sure to set the referredBy field
   });
-  checkPassword(password, confirmPassword);
+
   await newMarketer.save();
 
-  // Add the new marketer as a direct downline
-  referredBy.downlines.push(newMarketer._id);
-  await referredBy.save();
-  // If the referrer has its own referrer, recursively add downlines
-  if (referredBy.referredBy) {
-    const parentReferrer = await Marketer.findById(referredBy.referredBy);
-    if (parentReferrer) {
-      // Add the new marketer as a downline for the parent referrer
-      parentReferrer.downlines.push(newMarketer._id);
-      await parentReferrer.save();
-    }
-  }
+  // Generate and assign the referral link
+  const referralLink = generateReferralLink(newMarketer._id);
+  newMarketer.referralLink = referralLink;
+  await newMarketer.save();
+
+  // Update the downlines recursively
+  await updateDownlines(referralId, newMarketer._id);
 
   const token = generateToken(newMarketer._id);
   if (newMarketer) {
@@ -176,7 +190,7 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if ((!email, !password)) {
+  if (!email || !password) {
     res.status(400);
     throw new Error("Enter email and password");
   }
@@ -220,33 +234,6 @@ const getMarketer = asyncHandler(async (req, res) => {
     throw new Error("Marketer not found");
   }
 });
-//   const token = req.cookies.token;
-//   if (!token) {
-//     res.json(false)
-//     return;
-//   }
-//   try {
-//     // Verify token
-//     const verified = jwt.verify(token, process.env.JWT_SECRET);
-//     if(verified){
-//       res.json(true)
-//     }else{
-//       res.json(true);
-//     }
-
-//     // Get marketer_id from token
-//     const marketer = await Marketer.findById(verified.id).select("-password");
-//     if (!marketer) {
-//       res.status(401).json({ message: "Marketer not found" });
-//       return;
-//     }
-
-//     req.marketer = marketer;
-//     next();
-//   } catch (error) {
-//     res.status(401).json({ message: "Not authorized, please login!" });
-//   }
-// });
 
 const getLoginStatus = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
@@ -256,7 +243,6 @@ const getLoginStatus = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Verify token
     const verified = jwt.verify(token, process.env.JWT_SECRET);
     if (verified) {
       res.json(true);
@@ -264,13 +250,11 @@ const getLoginStatus = asyncHandler(async (req, res) => {
       res.json(false);
     }
 
-    // Get marketer_id from token
-    const marketer = await Marketer.findById(verified._id).select("-password");
+    const marketer = await Marketer.findById(verified.id).select("-password");
     if (!marketer) {
       return res.json(false);
     }
 
-    // If the token is valid and marketer exists
     res.json(true);
   } catch (error) {
     res.json(false); // Token verification failed or some other error occurred
@@ -290,6 +274,18 @@ const updateMarketer = asyncHandler(async (req, res) => {
   }
 });
 
+const updatePhoto = asyncHandler(async (req, res) => {
+  const { photo } = req.body;
+  try {
+    const marketer = await Marketer.findById(req.marketer._id);
+    marketer.photo = photo;
+    const updatedMarketer = await marketer.save();
+    res.status(200).json(updatedMarketer);
+  } catch (error) {
+    res.status(400).json({ msg: "Marketer photo not found" });
+  }
+});
+
 module.exports = {
   registerMarketer,
   registerUnderReferral,
@@ -298,4 +294,5 @@ module.exports = {
   getMarketer,
   getLoginStatus,
   updateMarketer,
+  updatePhoto,
 };
