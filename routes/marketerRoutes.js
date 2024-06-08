@@ -18,7 +18,7 @@ router.post("/register/:referralId", registerUnderReferral);
 router.post("/login", login);
 router.delete("/logout", logout);
 router.get("/getMarketer", protect, getMarketer);
-router.get("/getStatus", getLoginStatus);
+router.get("/getLoginStatus", getLoginStatus);
 router.patch("/updateMarketer", protect, updateMarketer);
 router.patch("/updatePhoto", protect, updatePhoto);
 

@@ -35,25 +35,27 @@ const updateDownlines = async (referrerId, newDownlineId) => {
 const registerMarketer = asyncHandler(async (req, res) => {
   const { name, phone, email, password, confirmPassword } = req.body;
   if (!name || !phone || !email || !password || !confirmPassword) {
-    res.status(400);
-    throw new Error("Fill all required fields");
+    res.status(400).json({ message: "Fill all required fields" });
+    return;
   }
 
   if (password.length < 6) {
-    res.status(400);
-    throw new Error("Password cannot be less than 6 characters");
+    res
+      .status(400)
+      .json({ message: "Password cannot be less than 6 characters" });
+    return;
   }
 
   const emailExists = await Marketer.findOne({ email });
   if (emailExists) {
-    res.status(400);
-    throw new Error("Email already exists");
+    res.status(400).json({ message: "Email already exists" });
+    return;
   }
 
   const phoneExists = await Marketer.findOne({ phone });
   if (phoneExists) {
-    res.status(400);
-    throw new Error("The phone number already exists");
+    res.status(400).json({ message: "The phone number already exists" });
+    return;
   }
 
   checkPassword(password, confirmPassword);
@@ -93,7 +95,7 @@ const registerMarketer = asyncHandler(async (req, res) => {
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 86400),
       secure: process.env.NODE_ENV === "development" ? false : true,
-      sameSite: "none",
+      sameSite: "strict",
     });
     res.status(201).json({
       _id,
@@ -111,18 +113,42 @@ const registerMarketer = asyncHandler(async (req, res) => {
       token,
     });
   } else {
-    res.status(400);
-    throw new Error("Invalid user data");
+    res.status(400).json({ message: "Invalid user data" });
   }
 });
 
 const registerUnderReferral = asyncHandler(async (req, res) => {
   const { referralId } = req.params;
   const { name, phone, email, password, confirmPassword } = req.body;
+  if (!name || !phone || !email || !password || !confirmPassword) {
+    res.status(400).json({ message: "Fill all required fields" });
+    return;
+  }
+
+  if (password.length < 6) {
+    res
+      .status(400)
+      .json({ message: "Password cannot be less than 6 characters" });
+    return;
+  }
+
+  const emailExists = await Marketer.findOne({ email });
+  if (emailExists) {
+    res.status(400).json({ message: "Email already exists" });
+    return;
+  }
+
+  const phoneExists = await Marketer.findOne({ phone });
+  if (phoneExists) {
+    res.status(400).json({ message: "The phone number already exists" });
+    return;
+  }
+
   const referredBy = await Marketer.findById(referralId);
   if (!referredBy) {
-    res.status(404);
-    throw new Error("Referral not found");
+    res.status(404).json({ message: "Referral not found" });
+
+    return;
   }
 
   checkPassword(password, confirmPassword);
@@ -167,7 +193,7 @@ const registerUnderReferral = asyncHandler(async (req, res) => {
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 86400),
       secure: process.env.NODE_ENV === "development" ? false : true,
-      sameSite: "none",
+      sameSite: "strict",
     });
     res.status(201).json({
       _id,
@@ -208,14 +234,14 @@ const login = asyncHandler(async (req, res) => {
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 86400),
       secure: process.env.NODE_ENV === "development" ? false : true,
-      sameSite: "none",
+      sameSite: "strict",
     });
     const loggedInMarketer = await Marketer.findOne({ email }).select(
       "-password"
     );
     res.status(200).json({ loggedInMarketer, token });
   } else {
-    throw new Error("Invalid Email or Password");
+    res.status(400).json({ message: "Invalid Email or Password" });
   }
 });
 
@@ -237,27 +263,32 @@ const getMarketer = asyncHandler(async (req, res) => {
 
 const getLoginStatus = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
+  console.log("Token received:", token);
 
+  // Log if token is missing
   if (!token) {
+    console.log("Token not found in cookies");
     return res.json(false);
   }
 
   try {
+    // Decode and verify token
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    if (verified) {
-      res.json(true);
-    } else {
-      res.json(false);
-    }
+    console.log("Token verified:", verified);
 
+    // Find marketer based on token's payload
     const marketer = await Marketer.findById(verified.id).select("-password");
     if (!marketer) {
+      console.log("Marketer not found in database");
       return res.json(false);
     }
 
-    res.json(true);
+    // Marketer found, return true
+    return res.json(true);
   } catch (error) {
-    res.json(false); // Token verification failed or some other error occurred
+    // Log the error for debugging
+    console.error("Error during token verification:", error);
+    return res.json(false); // Token verification failed or some other error occurred
   }
 });
 
