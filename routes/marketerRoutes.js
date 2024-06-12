@@ -1,4 +1,3 @@
-// routes/marketerRoutes.js
 const express = require("express");
 const router = express.Router();
 const {
@@ -10,6 +9,7 @@ const {
   getLoginStatus,
   updateMarketer,
   updatePhoto,
+  getDownlines,
 } = require("../controllers/marketerController");
 const { protect } = require("../middlewares/authMiddleware");
 
@@ -21,5 +21,6 @@ router.get("/getMarketer", protect, getMarketer);
 router.get("/getLoginStatus", getLoginStatus);
 router.patch("/updateMarketer", protect, updateMarketer);
 router.patch("/updatePhoto", protect, updatePhoto);
+router.get("/:id/downlines", protect, getDownlines);
 
 module.exports = router;

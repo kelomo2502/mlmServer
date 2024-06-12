@@ -7,6 +7,7 @@ const cors = require("cors");
 dotenv.config();
 const marketerRoutes = require("./routes/marketerRoutes");
 const errorHandler = require("./middlewares/errorhandler");
+const { getDownlines } = require("./controllers/marketerController");
 
 const app = express();
 const PORT = process.env.PORT || 3100;
