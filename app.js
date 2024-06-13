@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://mlm-server-pv4fagrht-kelomo2502s-projects.vercel.app",
+      "https://mlm-server-kelomo2502s-projects.vercel.app",
     ],
     credentials: true,
   })
