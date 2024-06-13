@@ -320,7 +320,6 @@ const updatePhoto = asyncHandler(async (req, res) => {
 // Add the new function here
 const getDownlines = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log("Request received for downlines:", id);
 
   try {
     // Find the marketer by ID and populate the downlines
@@ -332,7 +331,6 @@ const getDownlines = asyncHandler(async (req, res) => {
       res.status(404).json({ message: "Marketer not found" });
       return;
     }
-
     res.status(200).json(marketer.downlines);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
