@@ -317,6 +317,26 @@ const updatePhoto = asyncHandler(async (req, res) => {
   }
 });
 
+// Add the new function here
+const getDownlines = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the marketer by ID and populate the downlines
+    const marketer = await Marketer.findById(id)
+      .populate("downlines", "-password")
+      .select("name phone email referralLink downlines");
+
+    if (!marketer) {
+      res.status(404).json({ message: "Marketer not found" });
+      return;
+    }
+    res.status(200).json(marketer.downlines);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 module.exports = {
   registerMarketer,
   registerUnderReferral,
@@ -326,4 +346,5 @@ module.exports = {
   getLoginStatus,
   updateMarketer,
   updatePhoto,
+  getDownlines,
 };
