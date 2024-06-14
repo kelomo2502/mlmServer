@@ -30,12 +30,8 @@ app.use("/api/v1", marketerRoutes);
 app.use(errorHandler);
 const start = async () => {
   try {
-    mongoose.connect("mongodb://127.0.0.1:27017", {
-      dbName: "mlmDB",
-      // useNewUrlParser: true,
-      // useUnifiedTopology: true,
-      // useCreateIndex: true,
-    });
+    mongoose.connect(process.env.MONGODB_URI);
+    console.log("Connected to database");
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
