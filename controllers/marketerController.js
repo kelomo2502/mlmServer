@@ -94,7 +94,7 @@ const registerMarketer = asyncHandler(async (req, res) => {
       path: "/",
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 86400),
-      secure: process.env.NODE_ENV === "development" ? false : true,
+      secure: true,
       sameSite: "strict",
     });
     res.status(201).json({
