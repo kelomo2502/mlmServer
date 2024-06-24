@@ -11,6 +11,7 @@ const errorHandler = require("./middlewares/errorhandler");
 const app = express();
 const PORT = process.env.PORT || 3100;
 // Middlewares
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(
