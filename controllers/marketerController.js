@@ -319,11 +319,11 @@ const updatePhoto = asyncHandler(async (req, res) => {
 
 // Add the new function here
 const getDownlines = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { marketerId } = req.params;
 
   try {
     // Find the marketer by ID and populate the downlines
-    const marketer = await Marketer.findById(id)
+    const marketer = await Marketer.findById(marketerId)
       .populate("downlines", "-password")
       .select("name phone email referralLink downlines");
 

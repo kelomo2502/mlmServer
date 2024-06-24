@@ -21,6 +21,6 @@ router.get("/getMarketer", protect, getMarketer);
 router.get("/getLoginStatus", getLoginStatus);
 router.patch("/updateMarketer", protect, updateMarketer);
 router.patch("/updatePhoto", protect, updatePhoto);
-router.get("/:id/downlines", protect, getDownlines);
+router.get("/:marketerId/downlines", protect, getDownlines);
 
 module.exports = router;
