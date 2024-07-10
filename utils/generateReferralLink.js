@@ -1,6 +1,6 @@
 // utils/generateReferralLink.js
 function generateReferralLink(id) {
-  return `http://localhost:5173/register?ref=${id}`;
+  return `https://mlm-client.vercel.app/register?ref=${id}`;
 }
 
 module.exports = generateReferralLink;
